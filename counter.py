@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 import argparse
 import re
@@ -30,6 +30,7 @@ parse.add_argument('--show-count', help="will show count of word usage", dest="s
 args = parse.parse_args()
 
 nlp = spacy.load('fr_core_news_md')
+nlp.max_length = 1500000 # for long texts
 
 text = args.source.read()
 args.source.close()
