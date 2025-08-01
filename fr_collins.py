@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 import os
 from os.path import basename, splitext
 from urllib.parse import urlparse
+import cloudscraper
 
 import argparse
 
@@ -16,7 +17,13 @@ parse.add_argument('--rewrite-media', action="store_true", help="will rewrite al
 args = parse.parse_args();
 
 user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.61 Safari/537.36'
+host = 'www.collinsdictionary.com'
 headers = {'user-agent': user_agent}
+scraper = cloudscraper.create_scraper()  # returns a CloudScraper instance
+
+def get(url):
+    #requests.get(url, headers=headers, verify=False)
+    return scraper.get(url)
 
 def field(val):
     if val:
@@ -54,7 +61,7 @@ def parse_mp3(soup, word):
             mp3_file = word.replace(' ', '_') + '.mp3'
             to_file = 'collection.media/' + mp3_file
             if not os.path.exists(to_file) or args.rewrite_media:
-                mp3r = requests.get(mp3, headers=headers)
+                mp3r = get(mp3)
                 open(to_file, 'wb').write(mp3r.content)
             return "[sound:%s]" % mp3_file
     else:
@@ -93,15 +100,15 @@ def parse_image(soup, word):
         _, ext = splitext(urlparse(src).path)
         to_file = 'collection.media/{}{}'.format(word.replace(' ', '_'), ext)
         if not os.path.exists(to_file) or args.rewrite_media:
-            imgr = requests.get('https://www.collinsdictionary.com/' + src, headers=headers)
+            imgr = get('https://{0}/{1}'.format(host, src))
             open(to_file, 'wb').write(imgr.content)
         return '<img src="{}">'.format(basename(to_file))
     else:
         return ''
 
 def scrape_word(word):
-    url = u'https://www.collinsdictionary.com/dictionary/french-english/' + word.lower().replace(' ', '+')
-    r = requests.get(url, headers=headers)
+    url = u'https://{0}/dictionary/french-english/{1}'.format(host, word.lower().replace(' ', '+'))
+    r = get(url)
     if r.status_code == 200:
         soup = BeautifulSoup(r.content, 'html.parser')
     

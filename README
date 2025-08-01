@@ -1,1 +1,6 @@
 scripts for anki
+
+./counter.py book.txt
+to run coutner install spaCy models first:
+python -m spacy download fr_core_news_sm
+python -m spacy download fr_core_news_md
